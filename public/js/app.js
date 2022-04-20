@@ -19494,26 +19494,97 @@ function render(_ctx, _cache, $props, $setup, $data, $options) {
 __webpack_require__.r(__webpack_exports__);
 /* harmony import */ var vue__WEBPACK_IMPORTED_MODULE_0__ = __webpack_require__(/*! vue */ "./node_modules/vue/dist/vue.esm-bundler.js");
 /* harmony import */ var _pages_App_vue__WEBPACK_IMPORTED_MODULE_1__ = __webpack_require__(/*! ./pages/App.vue */ "./resources/js/pages/App.vue");
+function _classCallCheck(instance, Constructor) { if (!(instance instanceof Constructor)) { throw new TypeError("Cannot call a class as a function"); } }
+
+function _defineProperties(target, props) { for (var i = 0; i < props.length; i++) { var descriptor = props[i]; descriptor.enumerable = descriptor.enumerable || false; descriptor.configurable = true; if ("value" in descriptor) descriptor.writable = true; Object.defineProperty(target, descriptor.key, descriptor); } }
+
+function _createClass(Constructor, protoProps, staticProps) { if (protoProps) _defineProperties(Constructor.prototype, protoProps); if (staticProps) _defineProperties(Constructor, staticProps); Object.defineProperty(Constructor, "prototype", { writable: false }); return Constructor; }
+
 __webpack_require__(/*! ./bootstrap */ "./resources/js/bootstrap.js");
 
 
 
+
+var Errors = /*#__PURE__*/function () {
+  function Errors() {
+    _classCallCheck(this, Errors);
+
+    this.errors = {};
+  }
+
+  _createClass(Errors, [{
+    key: "has",
+    value: function has(field) {
+      return this.errors.hasOwnProperty(field);
+    }
+  }, {
+    key: "any",
+    value: function any() {
+      return Object.keys(this.errors).length > 0;
+    }
+  }, {
+    key: "get",
+    value: function get(field) {
+      if (this.errors[field]) {
+        return this.errors[field][0];
+      }
+    }
+  }, {
+    key: "record",
+    value: function record(errors) {
+      this.errors = errors;
+    }
+  }, {
+    key: "clear",
+    value: function clear(field) {
+      delete this.errors[field];
+    }
+  }]);
+
+  return Errors;
+}();
+
+var Form = /*#__PURE__*/function () {
+  function Form(data) {
+    _classCallCheck(this, Form);
+
+    this.data = data;
+
+    for (var field in data) {
+      this[field] = data[field];
+    }
+  }
+
+  _createClass(Form, [{
+    key: "reset",
+    value: function reset() {}
+  }]);
+
+  return Form;
+}();
+
 var app = (0,vue__WEBPACK_IMPORTED_MODULE_0__.createApp)({
   data: function data() {
     return {
-      name: '',
-      description: '',
-      errors: {}
+      form: new Form({
+        name: '',
+        description: ''
+      }),
+      errors: new Errors()
     };
   },
   methods: {
     // also includes validation checks for if the post request is successful or not
     onSubmit: function onSubmit() {
-      axios.post('/projects', this.$data).then(function (response) {
-        return alert('success');
-      })["catch"](function (error) {
-        console.log(error.response);
+      var _this = this;
+
+      axios.post('/projects', this.$data).then(this.onSuccess)["catch"](function (error) {
+        return _this.errors.record(error.response.data);
       });
+    },
+    onSuccess: function onSuccess(response) {
+      alert(response.data.message);
+      form.reset();
     }
   },
   components: {

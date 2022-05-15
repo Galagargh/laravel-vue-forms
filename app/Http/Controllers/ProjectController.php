@@ -28,7 +28,7 @@ class ProjectController extends Controller
 
         Project::forceCreate([
             'name' => request('name'),
-            'description'=>request('description')
+            'description' => request('description')
         ]);
 
         return ['message' => 'Project Created!'];

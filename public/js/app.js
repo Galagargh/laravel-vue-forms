@@ -19537,7 +19537,12 @@ var Errors = /*#__PURE__*/function () {
   }, {
     key: "clear",
     value: function clear(field) {
-      delete this.errors[field];
+      if (field) {
+        delete this.errors[field];
+        return;
+      }
+
+      this.errors = {};
     }
   }]);
 
@@ -19548,47 +19553,73 @@ var Form = /*#__PURE__*/function () {
   function Form(data) {
     _classCallCheck(this, Form);
 
-    this.data = data;
+    this.originalData = data;
 
     for (var field in data) {
       this[field] = data[field];
     }
+
+    this.errors = new Errors();
   }
 
   _createClass(Form, [{
+    key: "data",
+    value: function data() {
+      var data = Object.assign({}, this);
+      delete data.originalData;
+      delete data.errors;
+      return data;
+    }
+  }, {
     key: "reset",
-    value: function reset() {}
+    value: function reset() {
+      for (var field in originalData) {
+        this[field] = '';
+      }
+    }
+  }, {
+    key: "submit",
+    value: function submit(requestType, url) {
+      var _this = this;
+
+      axios[requestType](url, this.data()).then(this.onSuccess.bind(this))["catch"](this.onFail.bind(this))["catch"](function (error) {
+        return _this.errors.record(error.response.data);
+      });
+    }
+  }, {
+    key: "onSuccess",
+    value: function onSuccess(response) {
+      alert(response.data.message);
+      this.errors.clear();
+      this.reset();
+    }
+  }, {
+    key: "onFail",
+    value: function onFail(error) {
+      this.errors.record(error.response.data);
+    }
   }]);
 
   return Form;
 }();
 
 var app = (0,vue__WEBPACK_IMPORTED_MODULE_0__.createApp)({
+  components: {
+    App: _pages_App_vue__WEBPACK_IMPORTED_MODULE_1__["default"]
+  },
   data: function data() {
     return {
       form: new Form({
         name: '',
         description: ''
-      }),
-      errors: new Errors()
+      })
     };
   },
   methods: {
     // also includes validation checks for if the post request is successful or not
     onSubmit: function onSubmit() {
-      var _this = this;
-
-      axios.post('/projects', this.$data).then(this.onSuccess)["catch"](function (error) {
-        return _this.errors.record(error.response.data);
-      });
-    },
-    onSuccess: function onSuccess(response) {
-      alert(response.data.message);
-      form.reset();
+      this.form.submit('post', '/projects');
     }
-  },
-  components: {
-    App: _pages_App_vue__WEBPACK_IMPORTED_MODULE_1__["default"]
   }
 });
 app.mount('#app');
